@@ -1,126 +1,255 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Código em Movimento — Scanner de cartões</title>
-<style>
-:root{color-scheme:light;--ink:#16202a;--muted:#65717e;--line:#d8dee5;--panel:#fff;--bg:#f3f5f7;--blue:#205f99;--green:#25804b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line);padding:24px max(20px,calc((100vw - 1180px)/2)) 20px}
-header h1{font-size:clamp(1.4rem,2.5vw,2rem);margin:0 0 5px}header p{margin:0;color:var(--muted);max-width:850px}
-main{max-width:1180px;margin:22px auto;padding:0 18px 40px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);gap:18px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0;box-shadow:0 3px 14px #1b28320a}.panel h2{font-size:1.08rem;margin:0 0 12px}.muted{color:var(--muted);font-size:.9rem}
-.drop{display:block;border:2px dashed #aab6c2;border-radius:12px;padding:20px;text-align:center;background:#fafbfd;cursor:pointer}.drop:hover{border-color:var(--blue)}.drop input{display:block;max-width:100%;margin:12px auto 0}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button,.button{border:0;border-radius:9px;padding:10px 14px;font:600 .92rem system-ui;cursor:pointer;background:var(--blue);color:white}button.secondary{background:#e8edf2;color:#253545}button:disabled{opacity:.45;cursor:not-allowed}
-#previewWrap{margin-top:16px;position:relative;background:#eef1f4;border-radius:10px;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden}#preview{display:block;max-width:100%;height:auto}#empty{padding:30px;text-align:center;color:var(--muted)}
-.rowTitle{display:flex;justify-content:space-between;align-items:center;gap:10px}.status{font-size:.85rem;color:var(--muted);margin-top:12px;min-height:1.3em}
-.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.legendItem{display:flex;gap:9px;align-items:center;font-size:.88rem;border:1px solid var(--line);border-radius:8px;padding:7px}.swatch{height:21px;width:21px;border-radius:5px;border:1px solid #0002;flex:none}
-#results{display:flex;flex-direction:column;gap:7px}.result{display:grid;grid-template-columns:26px 24px 1fr minmax(100px,.8fr);gap:8px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:.9rem}.result .num{color:var(--muted);font-variant-numeric:tabular-nums}.result select{min-width:0;width:100%;border:1px solid #c8d0d9;background:#fff;border-radius:6px;padding:6px;font:inherit;font-size:.82rem}.result .confidence{font-size:.72rem;color:var(--muted)}
-textarea{width:100%;min-height:155px;resize:vertical;border:1px solid var(--line);border-radius:9px;padding:12px;font:14px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;background:#fbfcfd;color:#17202a;margin-top:10px}.tips{font-size:.86rem;color:var(--muted);padding-left:18px}.tips li{margin:6px 0}.settings{display:flex;align-items:center;gap:10px;margin-top:12px;color:var(--muted);font-size:.86rem}.settings input{width:100%}.full{grid-column:1/-1}
-@media(max-width:850px){main{grid-template-columns:1fr}.full{grid-column:auto}.result{grid-template-columns:24px 22px 1fr}.result select{grid-column:3;grid-row:2}.result .confidence{grid-column:1/-1}}
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Mangueblock — Pensamento Computacional</title>
+
+    <meta name="description" content="Mangueblock: aprenda pensamento computacional criando sequências de comandos e resolvendo missões.">
+    <meta name="theme-color" content="#ed873b">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-<header><h1>Código em Movimento — scanner de cartões</h1><p>Envie uma foto dos cartões recortados. O programa identifica as cores no navegador, detecta a posição de cada cartão e organiza os comandos de cima para baixo e da esquerda para a direita. A imagem é processada localmente e não é enviada para um servidor.</p></header>
-<main>
-<section class="panel">
-<h2>1. Enviar imagem</h2>
-<label class="drop" id="drop">Selecione uma foto ou arraste o arquivo aqui.<br><span class="muted">Prefira uma foto de cima, fundo neutro, cartões separados e sem sombras fortes.</span><input id="file" type="file" accept="image/*"></label>
-<div class="actions"><button id="analyze" disabled>Analisar cores e ordem</button><button class="secondary" id="clear">Limpar</button></div>
-<div class="settings"><label for="tolerance">Tolerância de cor: <strong id="tolValue">18°</strong></label><input id="tolerance" type="range" min="8" max="30" value="18"></div>
-<div id="previewWrap"><div id="empty">A prévia da imagem e os marcadores detectados aparecerão aqui.</div><canvas id="preview" hidden></canvas></div>
-<div id="status" class="status" role="status">Nenhuma imagem carregada.</div>
-</section>
-<section class="panel">
-<div class="rowTitle"><h2>2. Comandos detectados</h2><span id="count" class="muted">0 cartões</span></div>
-<p class="muted">Se a cor de algum cartão for interpretada incorretamente, use a lista de seleção para corrigir o comando manualmente.</p>
-<div class="legend" id="legend"></div>
-<div id="results"><p class="muted">Depois da análise, os comandos aparecerão aqui, na ordem estimada da foto.</p></div>
-<div class="actions"><button id="copy" disabled>Copiar sequência</button><button id="downloadText" class="secondary" disabled>Baixar TXT</button></div>
-<textarea id="output" readonly aria-label="Sequência reconhecida" placeholder="A sequência de comandos aparecerá aqui..."></textarea>
-</section>
-<section class="panel full">
-<h2>Como fotografar para obter melhor resultado</h2>
-<ul class="tips"><li>Imprima a folha A4 em tamanho real e recorte os cartões pelas bordas.</li><li>Para testar um programa, disponha os cartões em um fundo branco ou cinza-claro, deixando alguns milímetros entre eles. O programa lê linhas de cima para baixo e cartões da esquerda para a direita.</li><li>Não sobreponha cartões. Evite luz colorida, reflexos, sombras fortes e objetos coloridos perto dos cartões.</li><li>Esta primeira versão reconhece o fundo colorido dos cartões. Ainda não reconhece Braille, texto ou estruturas avançadas como REPETIR e SE.</li><li>Se dois cartões da mesma cor encostarem, podem ser interpretados como um único objeto. Mantenha um espaço visível entre as peças.</li></ul>
-</section>
-</main>
-<script>
-const BLOCKS = [
- {id:'start',name:'INÍCIO',description:'marca o começo do programa',color:'#D82E42',hue:350,fg:'#fff'},
- {id:'forward',name:'AVANÇAR',description:'move o personagem para a frente',color:'#277C48',hue:142,fg:'#fff'},
- {id:'left',name:'VIRAR À ESQUERDA',description:'vira para a esquerda',color:'#2864C5',hue:220,fg:'#fff'},
- {id:'right',name:'VIRAR À DIREITA',description:'vira para a direita',color:'#E76F21',hue:23,fg:'#171717'},
- {id:'jump',name:'PULAR',description:'salta para superar um obstáculo',color:'#803DA5',hue:278,fg:'#fff'},
- {id:'interact',name:'INTERAGIR',description:'interage com um objeto do jogo',color:'#F0CD3E',hue:50,fg:'#171717'},
- {id:'end',name:'FINALIZAR',description:'encerra o programa',color:'#009EAD',hue:186,fg:'#101820'}
-];
-const $=id=>document.getElementById(id);
-const fileInput=$('file'), analyzeBtn=$('analyze'), clearBtn=$('clear'), canvas=$('preview'), ctx=canvas.getContext('2d',{willReadFrequently:true}), status=$('status'), results=$('results'), output=$('output');
-let originalImage=null, detections=[];
-function makeLegend(){ $('legend').innerHTML=''; BLOCKS.forEach(b=>{const el=document.createElement('div');el.className='legendItem';el.innerHTML=`<span class="swatch" style="background:${b.color}"></span><span><strong>${b.name}</strong><br><small class="muted">${b.description}</small></span>`;$('legend').appendChild(el);}); }
-makeLegend();
-$('tolerance').addEventListener('input',()=>{$('tolValue').textContent=$('tolerance').value+'°';});
-fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])loadFile(fileInput.files[0]);});
-$('drop').addEventListener('dragover',e=>{e.preventDefault();$('drop').style.borderColor='#205f99';});
-$('drop').addEventListener('dragleave',()=>{$('drop').style.borderColor='';});
-$('drop').addEventListener('drop',e=>{e.preventDefault();$('drop').style.borderColor='';const f=e.dataTransfer.files?.[0];if(f&&f.type.startsWith('image/'))loadFile(f);else setStatus('Selecione um arquivo de imagem.');});
-function setStatus(s){status.textContent=s;}
-function loadFile(file){
- if(!file.type.startsWith('image/')){setStatus('O arquivo selecionado não é uma imagem.');return;}
- const url=URL.createObjectURL(file), img=new Image();
- img.onload=()=>{originalImage=img;const maxDim=1100,scale=Math.min(1,maxDim/Math.max(img.naturalWidth,img.naturalHeight));canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.hidden=false;$('empty').hidden=true;analyzeBtn.disabled=false;detections=[];renderResults();drawPreview([]);setStatus(`Imagem carregada: ${img.naturalWidth} × ${img.naturalHeight} px. Clique em “Analisar cores e ordem”.`);URL.revokeObjectURL(url);};
- img.onerror=()=>{setStatus('Não foi possível abrir esta imagem.');URL.revokeObjectURL(url);};img.src=url;
-}
-clearBtn.addEventListener('click',()=>{originalImage=null;detections=[];fileInput.value='';canvas.hidden=true;$('empty').hidden=false;ctx.clearRect(0,0,canvas.width,canvas.height);analyzeBtn.disabled=true;output.value='';renderResults();setStatus('Nenhuma imagem carregada.');$('count').textContent='0 cartões';});
-analyzeBtn.addEventListener('click',()=>{if(!originalImage)return;analyzeBtn.disabled=true;setStatus('Analisando pixels e agrupando cartões...');setTimeout(()=>{try{detections=detectBlocks();orderRows(detections);drawPreview(detections);renderResults();setStatus(`Análise concluída: ${detections.length} cartão(ões) detectado(s). Confira os retângulos antes de usar a sequência.`);}catch(e){console.error(e);setStatus('Houve um problema ao analisar a imagem. Tente uma foto mais clara e menos inclinada.');}finally{analyzeBtn.disabled=false;}},30);});
-function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;if(d!==0){if(max===r)h=60*(((g-b)/d)%6);else if(max===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);}if(h<0)h+=360;return [h,max===0?0:d/max,max];}
-function hueDistance(a,b){let d=Math.abs(a-b);return Math.min(d,360-d);}
-function classify(data,i,tol){const r=data[i],g=data[i+1],b=data[i+2];const [h,s,v]=rgbToHsv(r,g,b);if(s<0.28||v<0.16)return 0;let best=0,bd=999;for(let j=0;j<BLOCKS.length;j++){const d=hueDistance(h,BLOCKS[j].hue);if(d<bd){bd=d;best=j+1;}}return bd<=tol?best:0;}
-function detectBlocks(){
- const w=canvas.width,h=canvas.height,n=w*h,im=ctx.getImageData(0,0,w,h),labels=new Uint8Array(n),tol=Number($('tolerance').value);
- for(let p=0,pix=0;p<n;p++,pix+=4)labels[p]=classify(im.data,pix,tol);
- const seen=new Uint8Array(n),queue=new Int32Array(n),raw=[];
- const minArea=Math.max(180,Math.floor(n*0.0007));
- for(let p=0;p<n;p++){
-  const label=labels[p];if(!label||seen[p])continue;
-  let head=0,tail=0;queue[tail++]=p;seen[p]=1;let count=0,minX=w,minY=h,maxX=0,maxY=0,sumX=0,sumY=0;
-  while(head<tail){const q=queue[head++],x=q%w,y=(q/w)|0;count++;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;sumX+=x;sumY+=y;
-   const neighbors=[q-1,q+1,q-w,q+w];
-   for(let k=0;k<4;k++){const vq=neighbors[k];if(vq<0||vq>=n)continue;if((k===0&&x===0)||(k===1&&x===w-1))continue;if(!seen[vq]&&labels[vq]===label){seen[vq]=1;queue[tail++]=vq;}}
-  }
-  const bw=maxX-minX+1,bh=maxY-minY+1;
-  if(count<minArea||bw<18||bh<18||bw/bh<0.35||bw/bh>2.7)continue;
-  raw.push({block:BLOCKS[label-1],colorIndex:label,x:minX,y:minY,w:bw,h:bh,cx:sumX/count,cy:sumY/count,area:count,manual:false});
- }
- // Text edges and antialiasing can create small fragments matching a card's hue. Keep only components reasonably large compared with the largest component of that hue.
- const largestByColor=new Map();
- for(const d of raw)largestByColor.set(d.colorIndex,Math.max(largestByColor.get(d.colorIndex)||0,d.area));
- const found=raw.filter(d=>d.area>=Math.max(minArea,(largestByColor.get(d.colorIndex)||0)*0.2));
- return found.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);
-}
-function median(arr){if(!arr.length)return 0;const s=[...arr].sort((a,b)=>a-b);return s[Math.floor(s.length/2)];}
-function orderRows(items){
- items.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);if(items.length<2){items.forEach((d,i)=>d.order=i+1);return;}
- const mh=median(items.map(d=>d.h)),threshold=Math.max(12,mh*0.55),rows=[];
- for(const d of items){let best=null,bestDiff=Infinity;for(const row of rows){const diff=Math.abs(d.cy-row.center);if(diff<=threshold&&diff<bestDiff){best=row;bestDiff=diff;}}
-  if(!best){best={items:[],center:d.cy};rows.push(best);}best.items.push(d);best.center=median(best.items.map(v=>v.cy));
- }
- rows.sort((a,b)=>a.center-b.center);let k=1;for(const row of rows){row.items.sort((a,b)=>a.cx-b.cx);for(const d of row.items)d.order=k++;}
-}
-function drawPreview(items){
- if(!originalImage)return;ctx.drawImage(originalImage,0,0,canvas.width,canvas.height);
- items.forEach((d,i)=>{ctx.save();ctx.lineWidth=Math.max(2,canvas.width/500);ctx.strokeStyle=d.block.color;ctx.fillStyle=d.block.color;ctx.strokeRect(d.x,d.y,d.w,d.h);const label=`${d.order}. ${d.block.name}`;ctx.font=`bold ${Math.max(12,canvas.width/65)}px system-ui, sans-serif`;const tw=ctx.measureText(label).width;const lh=Math.max(21,canvas.width/38);const yy=Math.max(lh,d.y);ctx.globalAlpha=.92;ctx.fillRect(d.x,yy-lh,Math.min(canvas.width-d.x,tw+10),lh);ctx.globalAlpha=1;ctx.fillStyle=d.block.fg;ctx.fillText(label,d.x+5,yy-lh/2+5);ctx.restore();});
-}
-function renderResults(){
- results.innerHTML='';if(!detections.length){results.innerHTML='<p class="muted">Nenhum cartão detectado ainda. Envie uma foto e execute a análise.</p>';output.value='';$('copy').disabled=true;$('downloadText').disabled=true;$('count').textContent='0 cartões';return;}
- [...detections].sort((a,b)=>a.order-b.order).forEach((d,i)=>{const row=document.createElement('div');row.className='result';row.innerHTML=`<span class="num">${i+1}.</span><span class="swatch" style="background:${d.block.color}"></span><span><strong>${d.block.name}</strong><br><span class="confidence">Área: ${d.area.toLocaleString('pt-BR')} px • centro (${Math.round(d.cx)}, ${Math.round(d.cy)})</span></span><select aria-label="Corrigir comando do cartão ${i+1}"></select>`;
- const sel=row.querySelector('select');BLOCKS.forEach(b=>{const opt=document.createElement('option');opt.value=b.id;opt.textContent=b.name;opt.selected=b.id===d.block.id;sel.appendChild(opt);});sel.addEventListener('change',()=>{d.block=BLOCKS.find(b=>b.id===sel.value);drawPreview(detections);updateOutput();});results.appendChild(row);});
- $('count').textContent=`${detections.length} cartão(ões)`;updateOutput();
-}
-function updateOutput(){output.value=[...detections].sort((a,b)=>a.order-b.order).map((d,i)=>`${i+1}. ${d.block.name}`).join('\n');$('copy').disabled=!detections.length;$('downloadText').disabled=!detections.length;}
-$('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(output.value);setStatus('Sequência copiada.');}catch(e){output.focus();output.select();setStatus('Selecione o texto e copie manualmente (Ctrl+C).');}});
-$('downloadText').addEventListener('click',()=>{const blob=new Blob([output.value+'\n'],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sequencia-codigo-em-movimento.txt';a.click();URL.revokeObjectURL(url);});
-</script>
+    <canvas id="bg" aria-hidden="true"></canvas>
+    <a class="skip" href="#main">Ir para o conteúdo principal</a>
+
+    <div class="wrap">
+        <!-- CABEÇALHO -->
+        <header class="site" data-koi-avoid>
+            <button class="logo" id="logo" aria-label="Mangueblock, ir para o início">
+                <span id="logoMark" aria-hidden="true"></span>
+                <span id="logoText">Mangueblock</span>
+            </button>
+            <nav aria-label="Navegação Principal">
+                <button class="navb" data-go="catalog">Missões</button>
+            </nav>
+            <div class="header-step-slot" id="headerStepProgressSlot"></div>
+            <div class="hdr">
+                <button class="btn w sm" id="apb" aria-label="Acessibilidade" aria-haspopup="dialog">
+                    <span id="apIcon" aria-hidden="true"></span><span class="accessibility-label">Acessibilidade</span>
+                </button>
+                <div class="header-mission-actions" id="headerMissionActions" hidden></div>
+            </div>
+        </header>
+
+        <main id="main">
+
+            <!-- 1. LANDING PAGE -->
+            <section id="landing" data-view role="region" aria-labelledby="hero-title">
+                <div class="hero" data-koi-avoid>
+                    <p class="eyebrow">PENSAMENTO COMPUTACIONAL · BNCC</p>
+                    <h1 id="hero-title">Mergulhe no mangue e descubra a programação.</h1>
+                    <p class="lead">Escolha uma missão, organize os comandos e veja sua ideia ganhar vida.</p>
+                    <div class="cta">
+                        <button class="btn cta-main" id="start">
+                            Explorar missões <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                    <p class="hero-note">Para aprender brincando · Na tela ou com cartões físicos</p>
+                </div>
+            </section>
+
+
+            <!-- 2. CATÁLOGO -->
+            <section id="catalog" data-view hidden data-koi-avoid="light" role="region">
+                <div id="catalogHome" class="catalog-home">
+                    <div class="catalog-heading">
+                        <div><p class="eyebrow">MANGUEBLOCK · MISSÕES</p><h1 class="h1s">Aventuras</h1></div>
+                        <p class="catalog-subtitle">Escolha um mundo e avance pelas etapas.</p>
+                    </div>
+                    <div class="catalog-tools">
+                        <label class="search catalog-search">
+                            <span id="srIcon" aria-hidden="true"></span>
+                            <input type="search" id="q" placeholder="Buscar um mundo ou desafio" autocomplete="off">
+                        </label>
+                        <div class="catalog-years">
+                            <span class="lb">Ano escolar</span>
+                            <div class="chips" id="fy" role="group" aria-label="Filtrar por ano escolar"></div>
+                        </div>
+                    </div>
+                    <div class="resbar catalog-results-bar">
+                        <div class="catalog-results-meta">
+                            <p id="cnt" aria-live="polite"></p>
+                            <span class="catalog-xp" id="xp" title="Estrelas conquistadas" aria-label="Estrelas conquistadas"></span>
+                        </div>
+                        <div class="catalog-view-switch" role="group" aria-label="Layout dos mundos">
+                            <button id="worldGridView" type="button" aria-label="Visualizar em grade" aria-pressed="true"></button>
+                            <button id="worldListView" type="button" aria-label="Visualizar em lista" aria-pressed="false"></button>
+                        </div>
+                    </div>
+                    <div class="list theme-grid" id="list"></div>
+                </div>
+
+                <section id="themeDetail" class="theme-detail" hidden aria-labelledby="themeTitle">
+                    <button class="theme-back" id="themeBack"><span aria-hidden="true">←</span> Todos os mundos</button>
+                    <div class="theme-hero" id="themeHero"></div>
+                    <div class="stages-heading">
+                        <div><p class="eyebrow">SUA JORNADA</p><h2>Etapas da aventura</h2></div>
+                        <p id="themeProgress" class="theme-progress"></p>
+                    </div>
+                    <div id="themeStages" class="theme-stages"></div>
+                </section>
+            </section>
+
+
+            <!-- 3. ÁREA DE JOGO (GAME FIRST LAYOUT) -->
+            <section id="play" data-view hidden data-koi-avoid="light" class="scratch-layout" role="region">
+
+                <div class="play-topbar">
+                    <div class="panel mission-info-panel">
+                            <h1 class="h2s" id="mt"></h1>
+                            <p class="mut" id="md"></p>
+                            <p class="mission-goal" id="mgoal"></p>
+                    </div>
+
+                    <div class="world-step-progress" id="worldStepProgress" hidden aria-label="Progresso neste mundo">
+                        <div class="world-step-track" role="progressbar" aria-label="Progresso do mundo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="worldStepFill"></span></div>
+                        <span id="worldStepLabel"></span>
+                    </div>
+                    <div class="mission-actions" id="missionActions">
+                        <button class="btn big execute-btn" id="go" disabled>▶ Executar</button>
+                        <button class="btn big execute-btn" id="flowGo" hidden disabled>▶ Executar</button>
+                        <button class="btn mission-next-btn" id="fbtn" hidden></button>
+                    </div>
+
+                    <div id="phys" class="panel scanner-panel" hidden>
+                        <p class="lb">Leitor de Cartões Físicos</p>
+                        <div class="row">
+                            <button class="btn" id="cam">Ligar Câmera</button>
+                            <label class="btn w">Foto<input type="file" accept="image/*" id="file" hidden></label>
+                        </div>
+                        <div id="scan" hidden>
+                            <canvas id="view"></canvas>
+                            <div class="row">
+                                <button class="btn" id="use" disabled>Usar Leitura</button>
+                                <button class="btn w" id="stop">Fechar Câmera</button>
+                            </div>
+                        </div>
+                        <p class="mut" id="sm" aria-live="polite"></p>
+                        <details>
+                            <summary>Cartões necessários para esta missão</summary>
+                            <div class="kit" id="kit"></div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- Estrutura Principal: Esquerda (Blocos) | Direita (Jogo Destacado) -->
+                <div class="scratch-grid">
+
+                    <!-- ESQUERDA: WORKZONE -->
+                    <div class="scratch-left-workzone">
+
+                        <div class="program-mode-switch" role="group" aria-label="Modo de montar a sequência">
+                            <button class="btn mode-choice active" id="guidedModeBtn" aria-pressed="true">Montagem guiada</button>
+                            <button class="btn mode-choice" id="freeflowModeBtn" aria-pressed="false">Fluxo livre</button>
+                        </div>
+
+                        <div id="guidedEditor" class="mode-editor">
+
+                        <!-- Paleta de Ações -->
+                        <div id="dig" class="panel">
+                            <p class="lb">Escolha os comandos</p>
+                            <div class="pal pal-large" id="pal"></div>
+                        </div>
+
+                        <!-- Sequência Atual -->
+                        <div class="panel" id="guidedSequencePanel">
+                            <div class="panel-header-sub" style="display:flex; justify-content:space-between; align-items:center;">
+                                <p class="lb">Sua Sequência</p>
+                                <div class="sequence-actions">
+                                    <span class="scan-slot" id="scanGuidedSlot"></span>
+                                    <button class="btn w sm" id="clear">Limpar</button>
+                                </div>
+                            </div>
+                            <div class="tray tray-spacious" id="tray" aria-live="polite"></div>
+                            <div class="row">
+                                <button class="btn w" id="hint">💡 Dica</button>
+                            </div>
+                            <p id="hx" class="mut" hidden></p>
+                        </div>
+
+                        <div class="fb" id="fb" hidden role="status">
+                            <div>
+                                <b id="ft"></b>
+                                <p id="fm"></p>
+                            </div>
+                        </div>
+
+                        </div>
+
+                        <section id="freeflowEditor" class="freeflow-editor" hidden aria-label="Editor de fluxo livre">
+                            <div class="freeflow-palette-panel">
+                                <div class="freeflow-heading">
+                                    <div>
+                                        <p class="lb">Monte seu programa</p>
+                                        <p class="mut">Arraste para ordenar. Devolva um bloco à barra ou solte fora da área para removê-lo.</p>
+                                    </div>
+                                    <div class="flow-header-actions">
+                                        <span class="scan-slot" id="scanFreeflowSlot"></span>
+                                        <button class="btn w sm" id="flowClear">Limpar</button>
+                                    </div>
+                                </div>
+                                <aside class="freeflow-sidebar is-expanded" id="flowSidebar">
+                                    <button class="flow-sidebar-toggle" id="flowSidebarToggle" aria-expanded="true" aria-controls="flowPalette">
+                                        <span aria-hidden="true">▦</span><span id="flowSidebarAction">Blocos</span>
+                                    </button>
+                                    <p class="flow-sidebar-label">Arraste um bloco</p>
+                                    <div class="flow-palette" id="flowPalette"></div>
+                                </aside>
+                            </div>
+                            <div class="freeflow-board">
+                                <div class="flow-canvas" id="flowCanvas">
+                                    <div class="flow-lane" id="flowLane" aria-label="Sequência do programa"></div>
+                                </div>
+                            </div>
+                            <div class="freeflow-footer">
+                                <p class="flow-status" id="flowStatus" aria-live="polite" hidden></p>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    <div class="scratch-right-stage">
+                        <div class="panel stage-panel">
+                            <canvas id="stage" role="img" aria-label="Cenário do jogo"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- DIÁLOGO ACESSIBILIDADE -->
+    <dialog id="ap" aria-labelledby="apt" role="dialog">
+        <h2 id="apt">Acessibilidade</h2>
+        <div id="apf"></div>
+        <button class="btn" id="apx">Pronto</button>
+    </dialog>
+
+    <video id="vid" playsinline muted hidden></video>
+
+    <!-- SCRIPTS -->
+    <script defer src="js/data.js"></script>
+    <script defer src="js/bncc-worlds.js"></script>
+    <script defer src="js/icons.js"></script>
+    <script defer src="js/state.js"></script>
+    <script defer src="js/audio.js"></script>
+    <script defer src="js/koi.js"></script>
+    <script defer src="js/reader-wasm.js"></script>
+    <script defer src="js/reader.js"></script>
+    <script defer src="js/game.js"></script>
+    <script defer src="js/catalog.js"></script>
+    <script defer src="js/main.js"></script>
 </body>
+
 </html>
