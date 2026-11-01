@@ -11,11 +11,15 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Mono:wght@400;700&display=swap"></noscript>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 
 <body>
+    <noscript>O Mangueblock precisa de JavaScript ativado para funcionar.</noscript>
     <canvas id="bg" aria-hidden="true"></canvas>
     <a class="skip" href="#main">Ir para o conteúdo principal</a>
 
@@ -57,7 +61,7 @@
 
 
             <!-- 2. CATÁLOGO -->
-            <section id="catalog" data-view hidden data-koi-avoid="light" role="region">
+            <section id="catalog" data-view hidden data-koi-avoid="light" role="region" aria-label="Catálogo de missões">
                 <div id="catalogHome" class="catalog-home">
                     <div class="catalog-heading">
                         <div><p class="eyebrow">MANGUEBLOCK · MISSÕES</p><h1 class="h1s">Aventuras</h1></div>
@@ -99,7 +103,7 @@
 
 
             <!-- 3. ÁREA DE JOGO (GAME FIRST LAYOUT) -->
-            <section id="play" data-view hidden data-koi-avoid="light" class="scratch-layout" role="region">
+            <section id="play" data-view hidden data-koi-avoid="light" class="scratch-layout" role="region" aria-label="Área de jogo">
 
                 <div class="play-topbar">
                     <div class="panel mission-info-panel">
@@ -160,7 +164,7 @@
 
                         <!-- Sequência Atual -->
                         <div class="panel" id="guidedSequencePanel">
-                            <div class="panel-header-sub" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="panel-header-sub">
                                 <p class="lb">Sua Sequência</p>
                                 <div class="sequence-actions">
                                     <span class="scan-slot" id="scanGuidedSlot"></span>
@@ -230,7 +234,7 @@
     </div>
 
     <!-- DIÁLOGO ACESSIBILIDADE -->
-    <dialog id="ap" aria-labelledby="apt" role="dialog">
+    <dialog id="ap" aria-labelledby="apt">
         <h2 id="apt">Acessibilidade</h2>
         <div id="apf"></div>
         <button class="btn" id="apx">Pronto</button>
