@@ -11,6 +11,7 @@ const persist = () => {
     } catch (e) {}
 };
 
+const RM = matchMedia('(prefers-reduced-motion:reduce)');
 const ST = {
     fs: 1,
     hc: 0,
